@@ -18,7 +18,7 @@ public class Via extends Agent{
 	
 	public void setup()
 	{	
-		// Register the book-selling service in the yellow pages
+		// Registra a via no Directory Facilitator
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
