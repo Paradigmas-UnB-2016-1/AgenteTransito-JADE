@@ -1,6 +1,7 @@
 
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
+import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -16,13 +17,20 @@ public class Via extends Agent{
 	private static final long serialVersionUID = 1L;
 	
 	public void setup()
-	{
-		
-		// Update the list of seller agents
-		DFAgentDescription template = new DFAgentDescription();
+	{	
+		// Register the book-selling service in the yellow pages
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		sd.setType("transito-carros");
-		template.addServices(sd);
+		sd.setType("transito");
+		sd.setName("JADE-agente-transito");
+		dfd.addServices(sd);	
+		try {
+			DFService.register(this, dfd);
+		}
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
 		
 		System.out.println("nome agente " +this.getName());
 		
