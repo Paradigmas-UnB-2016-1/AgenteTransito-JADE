@@ -18,7 +18,8 @@ public class Guarda extends Agent{
 	private AID viaComMaisCarros; // Representa a via com mais carros
 	private Integer maiorQuantidadeCarros; // Quantidade de carros da via mais populada
 
-	String CONVERSATION_ID = "carros-na-via";
+	String CFP_CONVERSATION_ID = "carros-na-via";
+	String TRAVAR_VIA_ID = "carros-na-via";
 	MessageTemplate mt;
 	
 	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 10;
@@ -84,7 +85,7 @@ public class Guarda extends Agent{
 			for (int i = 0; i < listaVias.length; ++i) {
 				cfp.addReceiver(listaVias[i]);
 			}
-			cfp.setConversationId(CONVERSATION_ID);
+			cfp.setConversationId(CFP_CONVERSATION_ID);
 			cfp.setReplyWith("cfp"+System.currentTimeMillis());
 			myAgent.send(cfp);
 			// Prepara o template para receber as propostas
@@ -124,11 +125,11 @@ public class Guarda extends Agent{
 			{
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.addReceiver(viaAberta);
-				request.setConversationId(CONVERSATION_ID);
+				request.setConversationId(TRAVAR_VIA_ID);
 				request.setReplyWith("request"+System.currentTimeMillis());
 				myAgent.send(request);
 				// Prepara o template para receber a resposta
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId(CONVERSATION_ID),
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId(TRAVAR_VIA_ID),
 						MessageTemplate.MatchInReplyTo(request.getReplyWith()));
 				
 				viaAberta = null;

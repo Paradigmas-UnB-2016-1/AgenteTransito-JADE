@@ -16,8 +16,7 @@ public class Via extends Agent{
 	private Integer quantidadeDeCarros;
 	private boolean statusAberto;
 	
-	//Número de série do agente
-	private static final long serialVersionUID = 1L;
+	String TRAVAR_VIA_ID = "travar-via";
 	
 	public void setup()
 	{	
@@ -118,7 +117,26 @@ public class Via extends Agent{
 		private static final long serialVersionUID = 977022657561165112L;
 
 		public void action() {
-			statusAberto = false;
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) 
+			{
+				ACLMessage reply = msg.createReply();
+
+				if (quantidadeDeCarros != null) {
+					statusAberto = false;
+					reply.setPerformative(ACLMessage.INFORM);
+					reply.setContent("done");
+				}
+				else {
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("not-available");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
 		}
 	}
 	
@@ -126,7 +144,26 @@ public class Via extends Agent{
 		private static final long serialVersionUID = -4127848735753594009L;
 
 		public void action() {
-			statusAberto = true;
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) 
+			{
+				ACLMessage reply = msg.createReply();
+
+				if (quantidadeDeCarros > 0) {
+					statusAberto = true;
+					reply.setPerformative(ACLMessage.INFORM);
+					reply.setContent("done");
+				}
+				else {
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Sem carros na via.");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
 		}
 	}
 }
