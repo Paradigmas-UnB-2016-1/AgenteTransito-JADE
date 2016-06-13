@@ -1,14 +1,7 @@
-import java.util.ArrayList;
-import java.util.Hashtable;
 import jade.core.AID;
-//import Via.OfferRequestsServer;
-//import Via.PurchaseOrdersServer;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -17,6 +10,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class Guarda extends Agent{
+	private static final long serialVersionUID = -3296457119186802280L;
 	
 	private AID viaAberta;
 	private AID[] listaVias; 

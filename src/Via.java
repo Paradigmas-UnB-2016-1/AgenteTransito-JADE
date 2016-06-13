@@ -1,10 +1,13 @@
-
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 public class Via extends Agent{
 
@@ -43,20 +46,87 @@ public class Via extends Agent{
 
 			// Comportamento para criar carros na via a cada 5 segundos
 			addBehaviour(new TickerBehaviour(this, 5000) {
-
-				private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = 4570363654540512633L;
 
 				protected void onTick() 
 				{
 					quantidadeDeCarros++;
 				}
-			} );
+			});
+
+			// Comportamento para retornar resposta do CFP
+			addBehaviour(new ResponderQuantidadeCarros());
+			
+			// Comportamento para responder TravarVia
+			addBehaviour(new TravarVia());
+			
+			// Comportamento para responder LiberarVia
+			addBehaviour(new LiberarVia());
+			
+			// Comportamento para liberar carros na via a cada 1 segundo
+			addBehaviour(new TickerBehaviour(this, 1000) {
+				private static final long serialVersionUID = -5349501205618955138L;
+
+				protected void onTick() 
+				{
+					if(statusAberto)
+					{
+						quantidadeDeCarros -= quantidadeDePistas;
+						if(quantidadeDeCarros < 0)
+						{
+							statusAberto = false;
+						}
+					}
+				}
+			});
 		}
 		else 
 		{
 			System.out.println("Não foi especificada a quantidade de pistas da via.");
 			doDelete();
 		}
-		
+	}
+	
+	private class ResponderQuantidadeCarros extends CyclicBehaviour {
+		private static final long serialVersionUID = -6370113631324227434L;
+
+		public void action() {
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				ACLMessage resposta = msg.createReply();
+
+				if (quantidadeDeCarros > 0)
+				{
+					resposta.setPerformative(ACLMessage.PROPOSE);
+					resposta.setContent(quantidadeDeCarros.toString());
+				}
+				else
+				{
+					resposta.setPerformative(ACLMessage.REFUSE);
+					resposta.setContent("not-available");
+				}
+				myAgent.send(resposta);
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class TravarVia extends OneShotBehaviour {
+		private static final long serialVersionUID = 977022657561165112L;
+
+		public void action() {
+			statusAberto = false;
+		}
+	}
+	
+	private class LiberarVia extends OneShotBehaviour {
+		private static final long serialVersionUID = -4127848735753594009L;
+
+		public void action() {
+			statusAberto = true;
+		}
 	}
 }
