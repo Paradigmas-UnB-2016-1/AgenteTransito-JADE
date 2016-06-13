@@ -27,6 +27,8 @@ public class Guarda extends Agent{
 	String CONVERSATION_ID = "carros-na-via";
 	MessageTemplate mt;
 	
+	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 10;
+	
 	protected void setup() {
 		
 		addBehaviour(new OneShotBehaviour() {
@@ -96,6 +98,8 @@ public class Guarda extends Agent{
 					MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 			
 			int quantidadePropostas = 0;
+			viaComMaisCarros = null;
+			maiorQuantidadeCarros = 0;
 			
 			while(quantidadePropostas >= listaVias.length)
 			{
@@ -122,14 +126,19 @@ public class Guarda extends Agent{
 		private static final long serialVersionUID = 5340802759041394271L;
 
 		public void action() {
-			ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-			request.addReceiver(viaAberta);
-			request.setConversationId(CONVERSATION_ID);
-			request.setReplyWith("request"+System.currentTimeMillis());
-			myAgent.send(request);
-			// Prepara o template para receber a resposta
-			mt = MessageTemplate.and(MessageTemplate.MatchConversationId(CONVERSATION_ID),
-					MessageTemplate.MatchInReplyTo(request.getReplyWith()));
+			if(viaComMaisCarros != null && maiorQuantidadeCarros >= QUANTIDADE_MINIMA_PARA_LIBERAR)
+			{
+				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+				request.addReceiver(viaAberta);
+				request.setConversationId(CONVERSATION_ID);
+				request.setReplyWith("request"+System.currentTimeMillis());
+				myAgent.send(request);
+				// Prepara o template para receber a resposta
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId(CONVERSATION_ID),
+						MessageTemplate.MatchInReplyTo(request.getReplyWith()));
+				
+				viaAberta = null;
+			}
 		}
 	}
 	
@@ -138,20 +147,10 @@ public class Guarda extends Agent{
 		private static final long serialVersionUID = -8519518993368192920L;
 
 		public void action() {
-			// Receber a resposta das vias
-			ACLMessage resposta = myAgent.receive(mt);
-			resposta = myAgent.receive(mt);
-			if (resposta != null) {
-				// Purchase envioMensagem resposta received
-				if (resposta.getPerformative() == ACLMessage.INFORM) {
-					// Purchase successful. We can terminate
-					System.out.println("Será liberada a via: " + resposta.getSender().getName());
-					System.out.println("Quantidade de Carros = " + maiorQuantidadeCarros);
-					myAgent.doDelete();
-				}
-				else {
-					System.out.println("Tentativa falha.");
-				}
+			if (viaAberta == null)
+			{
+				System.out.println("Será liberada a via: ");// + resposta.getSender().getName());
+				viaAberta = null;//resposta.getSender();
 			}
 		}
 	}
