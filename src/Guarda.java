@@ -7,6 +7,7 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -20,11 +21,16 @@ public class Guarda extends Agent{
 	private AID viaAberta;
 	private AID[] listaVias; 
 	
+	private AID viaComMaisCarros; // Representa a via com mais carros
+	private Integer maiorQuantidadeCarros; // Quantidade de carros da via mais populada
+
+	String CONVERSATION_ID = "carros-na-via";
+	MessageTemplate mt;
+	
 	protected void setup() {
 		
 		addBehaviour(new OneShotBehaviour() {
-			
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1155280362385738241L;
 
 			@Override
 			public void action() {
@@ -57,51 +63,42 @@ public class Guarda extends Agent{
 			}
 		});
 		
-		addBehaviour(new CyclicBehaviour() {
-			
-			private static final long serialVersionUID = 1L;
+		SequentialBehaviour FuncaoGuarda = new SequentialBehaviour() {
+			private static final long serialVersionUID = -4260990148601499366L;
 
-			@Override
-			public void action() {
-
-				// Perform the request
-				myAgent.addBehaviour(new RequestPerformer());				
-			}
-		});
+			public int onEnd() {
+			    reset();
+			    myAgent.addBehaviour(this);
+			    return super.onEnd();
+			  }
+		};
+		FuncaoGuarda.addSubBehaviour(new RealizarCFP());
+		FuncaoGuarda.addSubBehaviour(new TravarVia());
+		FuncaoGuarda.addSubBehaviour(new LiberarVia());
 		
 	}
 		
-	/**
-	   Inner class RequestPerformer.
-	   Comportamento para requisitar a quantidade de carros para as Vias
-	 */
-	private class RequestPerformer extends Behaviour {
+	private class RealizarCFP extends OneShotBehaviour {
 
-		private static final long serialVersionUID = 1L;
-		private AID viaComMaisCarros; // Representa a via com mais carros
-		private Integer maiorQuantidadeCarros; // Quantidade de carros da via mais populada
-		private int quantidadeRequisicoes = 0; // Contador das vias analisadas
-		private MessageTemplate mt;
-		private int step = 0;
-		private String CONVERSATION_ID = "carros-na-via";
+		private static final long serialVersionUID = -484638705659064794L;
 
 		public void action() {
-			switch (step) {
-			case 0:
-				// Envia mensagem CallForProposal para todas as vias
-				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-				for (int i = 0; i < listaVias.length; ++i) {
-					cfp.addReceiver(listaVias[i]);
-				}
-				cfp.setConversationId(CONVERSATION_ID);
-				cfp.setReplyWith("cfp"+System.currentTimeMillis());
-				myAgent.send(cfp);
-				// Prepara o template para receber as propostas
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("book-trade"),
-						MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-				step = 1;
-				break;
-			case 1:
+			// Envia mensagem CallForProposal para todas as vias
+			ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+			for (int i = 0; i < listaVias.length; ++i) {
+				cfp.addReceiver(listaVias[i]);
+			}
+			cfp.setConversationId(CONVERSATION_ID);
+			cfp.setReplyWith("cfp"+System.currentTimeMillis());
+			myAgent.send(cfp);
+			// Prepara o template para receber as propostas
+			mt = MessageTemplate.and(MessageTemplate.MatchConversationId("book-trade"),
+					MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+			
+			int quantidadePropostas = 0;
+			
+			while(quantidadePropostas >= listaVias.length)
+			{
 				// Recebe as respostas das vias
 				ACLMessage resposta = myAgent.receive(mt);
 				if (resposta != null) {
@@ -113,28 +110,49 @@ public class Guarda extends Agent{
 							viaComMaisCarros = resposta.getSender();
 						}
 					}
-					quantidadeRequisicoes++;
-					if (quantidadeRequisicoes >= listaVias.length) {
-						// Todas vias foram analisadas
-						step = 2; 
-					}
+				}
+				quantidadePropostas++;
+			}
+		}
+	}
+
+	
+	private class TravarVia extends OneShotBehaviour
+	{
+		private static final long serialVersionUID = 5340802759041394271L;
+
+		public void action() {
+			ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+			request.addReceiver(viaAberta);
+			request.setConversationId(CONVERSATION_ID);
+			request.setReplyWith("request"+System.currentTimeMillis());
+			myAgent.send(request);
+			// Prepara o template para receber a resposta
+			mt = MessageTemplate.and(MessageTemplate.MatchConversationId(CONVERSATION_ID),
+					MessageTemplate.MatchInReplyTo(request.getReplyWith()));
+		}
+	}
+	
+	private class LiberarVia extends OneShotBehaviour
+	{
+		private static final long serialVersionUID = -8519518993368192920L;
+
+		public void action() {
+			// Receber a resposta das vias
+			ACLMessage resposta = myAgent.receive(mt);
+			resposta = myAgent.receive(mt);
+			if (resposta != null) {
+				// Purchase envioMensagem resposta received
+				if (resposta.getPerformative() == ACLMessage.INFORM) {
+					// Purchase successful. We can terminate
+					System.out.println("Será liberada a via: " + resposta.getSender().getName());
+					System.out.println("Quantidade de Carros = " + maiorQuantidadeCarros);
+					myAgent.doDelete();
 				}
 				else {
-					block();
+					System.out.println("Tentativa falha.");
 				}
-				break;
-			case 2:
-				step = 3;
-				break;
-			case 3:
-				step = 4;
-				break;
-			}        
-		}
-		
-		public boolean done() 
-		{				
-			return ((step == 2 && viaComMaisCarros == null) || step == 4);
+			}
 		}
 	}
 }
