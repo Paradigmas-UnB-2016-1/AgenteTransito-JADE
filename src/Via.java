@@ -20,7 +20,7 @@ public class Via extends Agent{
 	{	
 		// Registra a via no Directory Facilitator
 		DFAgentDescription dfd = new DFAgentDescription();
-		dfd.setName(getAID());
+		dfd.setName(this.getAID());
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("transito");
 		sd.setName("JADE-agente-transito");
@@ -32,7 +32,7 @@ public class Via extends Agent{
 			fe.printStackTrace();
 		}
 		
-		System.out.println("nome agente " +this.getName());
+		System.out.println("nome agente " + this.getName());
 		
 		Object[] args = getArguments();
 		if (args != null && args.length > 0)
