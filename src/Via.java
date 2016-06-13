@@ -10,7 +10,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class Via extends Agent{
-
+	private static final long serialVersionUID = 1422761164770948535L;
+	
 	//Atributos de Via
 	private Integer quantidadeDePistas;
 	private Integer quantidadeDeCarros;

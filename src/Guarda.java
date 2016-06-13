@@ -19,7 +19,7 @@ public class Guarda extends Agent{
 	private Integer maiorQuantidadeCarros; // Quantidade de carros da via mais populada
 
 	String CFP_CONVERSATION_ID = "carros-na-via";
-	String TRAVAR_VIA_ID = "carros-na-via";
+	String TRAVAR_VIA_ID = "travar-via";
 	MessageTemplate mt;
 	
 	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 10;
