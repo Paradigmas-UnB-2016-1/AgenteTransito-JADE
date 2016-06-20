@@ -1,6 +1,6 @@
+package agents;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -18,6 +18,7 @@ public class Via extends Agent{
 	private boolean statusAberto;
 	
 	String TRAVAR_VIA_ID = "travar-via";
+	String LIBERAR_VIA_ID = "liberar-via";
 	
 	public void setup()
 	{	
@@ -35,24 +36,21 @@ public class Via extends Agent{
 			fe.printStackTrace();
 		}
 		
-		System.out.println("nome agente " + this.getName());
-		
 		Object[] args = getArguments();
 		if (args != null && args.length > 0)
 		{
-			quantidadeDePistas = (int) args[0];
-			System.out.println("Via possui " + quantidadeDePistas.toString());
+			quantidadeDePistas = Integer.parseInt((String) args[0]);
+			
+			String abertoFechado = (String) args[1];
+			if (abertoFechado == "aberta")
+				statusAberto = true;
+			else
+				statusAberto = false;
+			
+			System.out.println("Via possui " + quantidadeDePistas.toString() + " pistas e está atualmente " + abertoFechado + ".");
 			quantidadeDeCarros = 0;
 
-			// Comportamento para criar carros na via a cada 5 segundos
-			addBehaviour(new TickerBehaviour(this, 5000) {
-				private static final long serialVersionUID = 4570363654540512633L;
-
-				protected void onTick() 
-				{
-					quantidadeDeCarros++;
-				}
-			});
+			addBehaviour(new AtualizarQuantidadeCarros(this,1000));
 
 			// Comportamento para retornar resposta do CFP
 			addBehaviour(new ResponderQuantidadeCarros());
@@ -62,29 +60,50 @@ public class Via extends Agent{
 			
 			// Comportamento para responder LiberarVia
 			addBehaviour(new LiberarVia());
-			
-			// Comportamento para liberar carros na via a cada 1 segundo
-			addBehaviour(new TickerBehaviour(this, 1000) {
-				private static final long serialVersionUID = -5349501205618955138L;
-
-				protected void onTick() 
-				{
-					if(statusAberto)
-					{
-						quantidadeDeCarros -= quantidadeDePistas;
-						if(quantidadeDeCarros < 0)
-						{
-							statusAberto = false;
-						}
-					}
-				}
-			});
 		}
 		else 
 		{
 			System.out.println("Não foi especificada a quantidade de pistas da via.");
 			doDelete();
 		}
+	}
+	
+
+	private class AtualizarQuantidadeCarros extends TickerBehaviour {
+
+		public AtualizarQuantidadeCarros(Agent a, long period) {
+			super(a, period);
+		}
+
+		private static final long serialVersionUID = 3017985306175066844L;
+
+		@Override
+		protected void onTick() {
+			if(statusAberto)
+			{
+				quantidadeDeCarros -= quantidadeDePistas;
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				}
+				if(quantidadeDeCarros < 0)
+				{
+					quantidadeDeCarros = 0;
+					statusAberto = false;
+				}
+				System.out.println(this.getAgent().getName() + "**: Quantidade de carros: " + quantidadeDeCarros.toString());
+			}
+			else
+			{
+				quantidadeDeCarros++;
+				System.out.println(this.getAgent().getName() + "**: Quantidade de carros: " + quantidadeDeCarros.toString());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+		
 	}
 	
 	private class ResponderQuantidadeCarros extends CyclicBehaviour {
@@ -94,6 +113,7 @@ public class Via extends Agent{
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
+				System.out.println("Inicia resposta de carros (CFP).");
 				ACLMessage resposta = msg.createReply();
 
 				if (quantidadeDeCarros > 0)
@@ -114,14 +134,19 @@ public class Via extends Agent{
 		}
 	}
 	
-	private class TravarVia extends OneShotBehaviour {
+	private class TravarVia extends CyclicBehaviour {
 		private static final long serialVersionUID = 977022657561165112L;
 
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchConversationId(TRAVAR_VIA_ID),
+					MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+			
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
 			{
+				System.out.println("Inicia travamento da via.");
+				
 				ACLMessage reply = msg.createReply();
 
 				if (quantidadeDeCarros != null) {
@@ -141,14 +166,18 @@ public class Via extends Agent{
 		}
 	}
 	
-	private class LiberarVia extends OneShotBehaviour {
+	private class LiberarVia extends CyclicBehaviour {
 		private static final long serialVersionUID = -4127848735753594009L;
 
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchConversationId(LIBERAR_VIA_ID),
+					MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+			
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
 			{
+				System.out.println("Inicia o liberamento da via.");
+				
 				ACLMessage reply = msg.createReply();
 
 				if (quantidadeDeCarros > 0) {
