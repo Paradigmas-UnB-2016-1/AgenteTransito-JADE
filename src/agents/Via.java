@@ -53,9 +53,10 @@ public class Via extends Agent{
 			TEMPO_SAIDA_CARROS = Integer.parseInt((String) args[2]);
 			TEMPO_CHEGADA_CARROS = Integer.parseInt((String) args[3]);
 			
+			quantidadeDeCarros = Integer.parseInt((String) args[4]);
+			
 			String nomeVia = this.getAID().getName().substring(0, this.getAID().getName().indexOf("@"));
 			System.out.println("Criada " + nomeVia + " com " + quantidadeDePistas.toString() + " pistas e atualmente " + abertoFechado + ".");
-			quantidadeDeCarros = 0;
 
 			addBehaviour(new DiminuirQuantidadeCarrosViaAberta(this,TEMPO_SAIDA_CARROS));
 

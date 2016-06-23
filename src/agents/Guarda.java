@@ -191,7 +191,7 @@ public class Guarda extends Agent{
 		private static final long serialVersionUID = 5340802759041394271L;
 
 		public void action() {
-			boolean temViaComCarros = viaComMaisCarros != null;
+			boolean temViaComCarros = viaComMaisCarros != null && maiorQuantidadeCarros > 0;
 			boolean quantidadeMinima = maiorQuantidadeCarros >= QUANTIDADE_MINIMA_PARA_LIBERAR;
 			boolean temViaAberta = viaAberta != null;
 			Date dataAtual = new Date();
@@ -201,7 +201,7 @@ public class Guarda extends Agent{
 			boolean tempoMaiorQueTempoMinimo = duracaoSegundos > TEMPO_MINIMO_PARA_LIBERAR;
 			boolean temCarrosNaViaAberta = quantidadeCarrosViaAberta > 0;
 			
-			if(temViaComCarros && (tempoMaiorQueTempoMinimo || !temCarrosNaViaAberta) && (!temViaAberta || quantidadeMinima || tempoMaiorQueTempoMaximo))
+			if(temViaComCarros && (!temCarrosNaViaAberta || (tempoMaiorQueTempoMinimo && (!temViaAberta || quantidadeMinima || tempoMaiorQueTempoMaximo))))
 			{
 				String nomeVia = viaAberta.getName().substring(0, viaAberta.getName().indexOf("@"));
 				System.out.println("Travando a " + nomeVia);
