@@ -21,12 +21,12 @@ public class InitAgent extends Agent
         
         ContainerController container = rt.createAgentContainer(profile); 
         
-        Object argsVia1[] = new Object[2];
+        Object argsVia1[] = new Object[4];
         argsVia1[0] = "2";
         argsVia1[1] = "aberta";
         argsVia1[2] = "1000"; //Tempo saída em ms
         argsVia1[3] = "3000"; //Tempo chegada em ms
-        Object argsVia2[] = new Object[2];
+        Object argsVia2[] = new Object[4];
         argsVia2[0] = "1";
         argsVia2[1] = "fechada";
         argsVia2[2] = "1000"; //Tempo saída em ms

@@ -87,17 +87,20 @@ public class Via extends Agent{
 
 		@Override
 		protected void onTick() {
-			quantidadeDeCarros -= quantidadeDePistas;
-			//try {
-				//Thread.sleep(1000);
-			//} catch (InterruptedException e) {
-			//}
-			if(quantidadeDeCarros < 0)
+			if(statusAberto)
 			{
-				quantidadeDeCarros = 0;
+				quantidadeDeCarros -= quantidadeDePistas;
+				//try {
+					//Thread.sleep(1000);
+				//} catch (InterruptedException e) {
+				//}
+				if(quantidadeDeCarros < 0)
+				{
+					quantidadeDeCarros = 0;
+				}
+				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
 			}
-			String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
-			System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
 		}		
 	}
 
@@ -111,13 +114,16 @@ public class Via extends Agent{
 
 		@Override
 		protected void onTick() {
-			quantidadeDeCarros++;
-			String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
-			System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
-			//try {
-				//Thread.sleep(1000);
-			//} catch (InterruptedException e) {
-			//}
+			if(!statusAberto)
+			{
+				quantidadeDeCarros++;
+				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+				//try {
+					//Thread.sleep(1000);
+				//} catch (InterruptedException e) {
+				//}
+			}
 		}		
 	}
 	
