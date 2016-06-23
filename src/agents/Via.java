@@ -15,10 +15,13 @@ public class Via extends Agent{
 	//Atributos de Via
 	private Integer quantidadeDePistas;
 	private Integer quantidadeDeCarros;
-	private boolean statusAberto;
+	public boolean statusAberto;
 	
 	String TRAVAR_VIA_ID = "travar-via";
 	String LIBERAR_VIA_ID = "liberar-via";
+
+	int TEMPO_SAIDA_CARROS = 1000; //em milisegundos
+	int TEMPO_CHEGADA_CARROS = 3000; //em milisegundos
 	
 	public void setup()
 	{	
@@ -46,11 +49,17 @@ public class Via extends Agent{
 				statusAberto = true;
 			else
 				statusAberto = false;
+
+			TEMPO_SAIDA_CARROS = Integer.parseInt((String) args[2]);
+			TEMPO_CHEGADA_CARROS = Integer.parseInt((String) args[3]);
 			
-			System.out.println("Via possui " + quantidadeDePistas.toString() + " pistas e está atualmente " + abertoFechado + ".");
+			String nomeVia = this.getAID().getName().substring(0, this.getAID().getName().indexOf("@"));
+			System.out.println("Criada " + nomeVia + " com " + quantidadeDePistas.toString() + " pistas e atualmente " + abertoFechado + ".");
 			quantidadeDeCarros = 0;
 
-			addBehaviour(new AtualizarQuantidadeCarros(this,1000));
+			addBehaviour(new DiminuirQuantidadeCarrosViaAberta(this,TEMPO_SAIDA_CARROS));
+
+			addBehaviour(new AumentarQuantidadeCarrosViaFechada(this,TEMPO_CHEGADA_CARROS));
 
 			// Comportamento para retornar resposta do CFP
 			addBehaviour(new ResponderQuantidadeCarros());
@@ -67,11 +76,10 @@ public class Via extends Agent{
 			doDelete();
 		}
 	}
-	
 
-	private class AtualizarQuantidadeCarros extends TickerBehaviour {
+	private class DiminuirQuantidadeCarrosViaAberta extends TickerBehaviour {
 
-		public AtualizarQuantidadeCarros(Agent a, long period) {
+		public DiminuirQuantidadeCarrosViaAberta(Agent a, long period) {
 			super(a, period);
 		}
 
@@ -79,31 +87,38 @@ public class Via extends Agent{
 
 		@Override
 		protected void onTick() {
-			if(statusAberto)
+			quantidadeDeCarros -= quantidadeDePistas;
+			//try {
+				//Thread.sleep(1000);
+			//} catch (InterruptedException e) {
+			//}
+			if(quantidadeDeCarros < 0)
 			{
-				quantidadeDeCarros -= quantidadeDePistas;
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				if(quantidadeDeCarros < 0)
-				{
-					quantidadeDeCarros = 0;
-					statusAberto = false;
-				}
-				System.out.println(this.getAgent().getName() + "**: Quantidade de carros: " + quantidadeDeCarros.toString());
+				quantidadeDeCarros = 0;
 			}
-			else
-			{
-				quantidadeDeCarros++;
-				System.out.println(this.getAgent().getName() + "**: Quantidade de carros: " + quantidadeDeCarros.toString());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-			}
+			String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+			System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+		}		
+	}
+
+	private class AumentarQuantidadeCarrosViaFechada extends TickerBehaviour {
+
+		public AumentarQuantidadeCarrosViaFechada(Agent a, long period) {
+			super(a, period);
 		}
-		
+
+		private static final long serialVersionUID = 3017985306175066844L;
+
+		@Override
+		protected void onTick() {
+			quantidadeDeCarros++;
+			String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+			System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+			//try {
+				//Thread.sleep(1000);
+			//} catch (InterruptedException e) {
+			//}
+		}		
 	}
 	
 	private class ResponderQuantidadeCarros extends CyclicBehaviour {
@@ -113,7 +128,6 @@ public class Via extends Agent{
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
-				System.out.println("Inicia resposta de carros (CFP).");
 				ACLMessage resposta = msg.createReply();
 
 				if (quantidadeDeCarros > 0)
@@ -144,9 +158,7 @@ public class Via extends Agent{
 			
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
-			{
-				System.out.println("Inicia travamento da via.");
-				
+			{				
 				ACLMessage reply = msg.createReply();
 
 				if (quantidadeDeCarros != null) {
@@ -175,9 +187,7 @@ public class Via extends Agent{
 			
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
-			{
-				System.out.println("Inicia o liberamento da via.");
-				
+			{				
 				ACLMessage reply = msg.createReply();
 
 				if (quantidadeDeCarros > 0) {

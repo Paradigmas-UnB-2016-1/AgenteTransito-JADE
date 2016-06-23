@@ -1,4 +1,7 @@
 package agents;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
@@ -12,20 +15,26 @@ import jade.lang.acl.MessageTemplate;
 
 public class Guarda extends Agent{
 	private static final long serialVersionUID = -3296457119186802280L;
-	
-	private AID viaAberta;
+
 	private AID[] listaVias = new AID[2]; 
+	
+	private AID viaAberta; // Representa a via com aberta
+	private Integer quantidadeCarrosViaAberta = 0; // Quantidade de carros da via aberta
 	
 	private AID viaComMaisCarros; // Representa a via com mais carros
 	private Integer maiorQuantidadeCarros; // Quantidade de carros da via mais populada
+	
+	private Date dataTroca = new Date();
 
 	String CFP_CONVERSATION_ID = "carros-na-via";
 	String TRAVAR_VIA_ID = "travar-via";
 	String LIBERAR_VIA_ID = "liberar-via";
 	int QUANTIDADE_VIAS = 2;
 	MessageTemplate mt;
-	
-	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 10;
+
+	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 5;
+	final int TEMPO_MINIMO_PARA_LIBERAR = 5; // Medida em segundos
+	final int TEMPO_MAXIMO_PARA_LIBERAR = 10; // Medida em segundos
 	
 	protected void setup() {
 		
@@ -54,14 +63,25 @@ public class Guarda extends Agent{
 				
 				if(listaVias.length == QUANTIDADE_VIAS)
 				{
-					viaAberta = listaVias[0];
+					// Lógica para inicializar via aberta
+					/*int i;
+					for(i=0;i<QUANTIDADE_VIAS;i++)
+					{
+						Via via = new Via();
+						via = via.getClass().cast(listaVias[i]);
+						if (via.statusAberto)
+							viaAberta = listaVias[i];
+					}*/
+					if(listaVias[0].getName().contains("Rio"))
+						viaAberta = listaVias[0];
+					else
+						viaAberta = listaVias[1];
 				}
 				else
 				{
-					System.out.println("Vias não foram totalmente criadas!");
+					System.out.println("As vias devem ser criadas antes do Guarda, encerrado o programa!");
 					try {
-						this.finalize();
-						this.done();
+						System.exit(0);
 					} catch (Throwable e) {
 						
 					}
@@ -71,7 +91,6 @@ public class Guarda extends Agent{
 					private static final long serialVersionUID = -4260990148601499366L;
 
 					public int onEnd() {
-						System.out.println("Acabou sequential");
 					    reset();
 					    myAgent.addBehaviour(this);
 					    return super.onEnd();
@@ -96,7 +115,6 @@ public class Guarda extends Agent{
 		public void action() {
 			if (listaVias.length > 0)
 			{
-				System.out.println("Inicia CFP!");
 				// Envia mensagem CallForProposal para todas as vias
 				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 				for (int i = 0; i < listaVias.length; ++i) {
@@ -120,7 +138,6 @@ public class Guarda extends Agent{
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -133,25 +150,27 @@ public class Guarda extends Agent{
 		@Override
 		public void action() {
 			if (listaVias.length > 0)
-			{
-				System.out.println("Inicia recebimento CFP!");
-				
+			{				
 				int quantidadePropostas = 0;
 				viaComMaisCarros = null;
 				maiorQuantidadeCarros = 0;
 				
 				while(quantidadePropostas < listaVias.length)
 				{
-					System.out.println("Analisar uma via.");
 					// Recebe as respostas das vias
 					ACLMessage resposta = myAgent.receive(mt);
 					if (resposta != null) {
 						if (resposta.getPerformative() == ACLMessage.PROPOSE) {
-							int quantidadeCarros = Integer.parseInt(resposta.getContent());
-							if (viaComMaisCarros == null || quantidadeCarros > maiorQuantidadeCarros) {
+							int quantidadeCarrosAnalisada = Integer.parseInt(resposta.getContent());
+							AID viaAnalisada = resposta.getSender();
+							if (viaAnalisada == viaAberta)
+							{
+								quantidadeCarrosViaAberta = quantidadeCarrosAnalisada;
+							}
+							else if (viaComMaisCarros == null || quantidadeCarrosAnalisada > maiorQuantidadeCarros) {
 								// Entra no if quando a via analisada possui maior quantidade de carros
-								maiorQuantidadeCarros = quantidadeCarros;
-								viaComMaisCarros = resposta.getSender();
+								maiorQuantidadeCarros = quantidadeCarrosAnalisada;
+								viaComMaisCarros = viaAnalisada;
 							}
 						}
 					}
@@ -172,9 +191,20 @@ public class Guarda extends Agent{
 		private static final long serialVersionUID = 5340802759041394271L;
 
 		public void action() {
-			if(viaComMaisCarros != null && maiorQuantidadeCarros >= QUANTIDADE_MINIMA_PARA_LIBERAR)
+			boolean temViaComCarros = viaComMaisCarros != null;
+			boolean quantidadeMinima = maiorQuantidadeCarros >= QUANTIDADE_MINIMA_PARA_LIBERAR;
+			boolean temViaAberta = viaAberta != null;
+			Date dataAtual = new Date();
+			long duracao = dataAtual.getTime() - dataTroca.getTime();
+			long duracaoSegundos = TimeUnit.MILLISECONDS.toSeconds(duracao);
+			boolean tempoMaiorQueTempoMaximo = duracaoSegundos > TEMPO_MAXIMO_PARA_LIBERAR;
+			boolean tempoMaiorQueTempoMinimo = duracaoSegundos > TEMPO_MINIMO_PARA_LIBERAR;
+			boolean temCarrosNaViaAberta = quantidadeCarrosViaAberta > 0;
+			
+			if(temViaComCarros && (tempoMaiorQueTempoMinimo || !temCarrosNaViaAberta) && (!temViaAberta || quantidadeMinima || tempoMaiorQueTempoMaximo))
 			{
-				System.out.println("Travando a via " + viaAberta.getName());
+				String nomeVia = viaAberta.getName().substring(0, viaAberta.getName().indexOf("@"));
+				System.out.println("Travando a " + nomeVia);
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.addReceiver(viaAberta);
 				request.setConversationId(TRAVAR_VIA_ID);
@@ -196,7 +226,8 @@ public class Guarda extends Agent{
 		public void action() {
 			if (viaAberta == null && viaComMaisCarros != null)
 			{
-				System.out.println("Liberando a via " + viaComMaisCarros.getName().toString());
+				String nomeVia = viaComMaisCarros.getName().substring(0, viaComMaisCarros.getName().indexOf("@"));
+				System.out.println("Liberando a " + nomeVia);
 				
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.addReceiver(viaComMaisCarros);
@@ -209,6 +240,7 @@ public class Guarda extends Agent{
 
 				viaAberta = viaComMaisCarros;
 				viaComMaisCarros = null;
+				dataTroca = new Date();
 			}
 		}
 	}

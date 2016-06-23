@@ -1,4 +1,4 @@
-package interface;
+package ui;
 import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
@@ -8,6 +8,8 @@ import javax.swing.JLayeredPane;
 
 public class Transito extends JFrame{
 
+	private static final long serialVersionUID = -4389284477318222160L;
+	
 	private JPanel panel;
 
 	public Transito(){
@@ -15,7 +17,6 @@ public class Transito extends JFrame{
 		
 		this.initialize();
 		this.setVisible(true);
-
 	}
 	
 	/**
