@@ -25,15 +25,15 @@ public class InitAgent extends Agent
         argsVia1[0] = "2";
         argsVia1[1] = "aberta";
         argsVia1[2] = "1000"; //Tempo saída em ms
-        argsVia1[3] = "3000"; //Tempo chegada em ms
-        argsVia1[4] = "5"; //Quantidade inicial de carros
-        
-        Object argsVia2[] = new Object[4];
+        argsVia1[3] = "500"; //Tempo chegada em ms
+        argsVia1[4] = "15"; //Quantidade inicial de carros
+       
+        Object argsVia2[] = new Object[5];
         argsVia2[0] = "1";
         argsVia2[1] = "fechada";
         argsVia2[2] = "1000"; //Tempo saída em ms
-        argsVia2[3] = "3000"; //Tempo chegada em ms
-        argsVia1[4] = "8"; //Quantidade inicial de carros
+        argsVia2[3] = "500"; //Tempo chegada em ms
+        argsVia2[4] = "20"; //Quantidade inicial de carros
         Object argsGuarda[] = new Object[0];
         AgentController via1, via2, guarda;
         

@@ -8,6 +8,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import ui.ViaUI;
 
 public class Via extends Agent{
 	private static final long serialVersionUID = 1422761164770948535L;
@@ -22,6 +23,8 @@ public class Via extends Agent{
 
 	int TEMPO_SAIDA_CARROS = 1000; //em milisegundos
 	int TEMPO_CHEGADA_CARROS = 3000; //em milisegundos
+	
+	ViaUI interfaceGrafica;
 	
 	public void setup()
 	{	
@@ -70,6 +73,9 @@ public class Via extends Agent{
 			
 			// Comportamento para responder LiberarVia
 			addBehaviour(new LiberarVia());
+			
+			interfaceGrafica = new ViaUI();
+			interfaceGrafica.showGui();
 		}
 		else 
 		{
@@ -101,6 +107,7 @@ public class Via extends Agent{
 				}
 				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
 				System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
 			}
 		}		
 	}
@@ -124,6 +131,7 @@ public class Via extends Agent{
 					//Thread.sleep(1000);
 				//} catch (InterruptedException e) {
 				//}
+				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
 			}
 		}		
 	}
@@ -178,6 +186,7 @@ public class Via extends Agent{
 					reply.setContent("not-available");
 				}
 				myAgent.send(reply);
+				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
 			}
 			else {
 				block();
@@ -207,6 +216,7 @@ public class Via extends Agent{
 					reply.setContent("Sem carros na via.");
 				}
 				myAgent.send(reply);
+				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
 			}
 			else {
 				block();

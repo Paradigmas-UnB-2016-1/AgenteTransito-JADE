@@ -15,7 +15,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class Guarda extends Agent{
 	private static final long serialVersionUID = -3296457119186802280L;
-
+	
 	private AID[] listaVias = new AID[2]; 
 	
 	private AID viaAberta; // Representa a via com aberta
@@ -32,9 +32,9 @@ public class Guarda extends Agent{
 	int QUANTIDADE_VIAS = 2;
 	MessageTemplate mt;
 
-	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 5;
-	final int TEMPO_MINIMO_PARA_LIBERAR = 5; // Medida em segundos
-	final int TEMPO_MAXIMO_PARA_LIBERAR = 10; // Medida em segundos
+	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 4;
+	final int TEMPO_MINIMO_PARA_LIBERAR = 10; // Medida em segundos
+	final int TEMPO_MAXIMO_PARA_LIBERAR = 15; // Medida em segundos
 	
 	protected void setup() {
 		
@@ -79,7 +79,7 @@ public class Guarda extends Agent{
 				}
 				else
 				{
-					System.out.println("As vias devem ser criadas antes do Guarda, encerrado o programa!");
+					System.out.println("As vias devem ser criadas antes do Guarda! Encerrando o programa...");
 					try {
 						System.exit(0);
 					} catch (Throwable e) {
@@ -163,9 +163,10 @@ public class Guarda extends Agent{
 						if (resposta.getPerformative() == ACLMessage.PROPOSE) {
 							int quantidadeCarrosAnalisada = Integer.parseInt(resposta.getContent());
 							AID viaAnalisada = resposta.getSender();
-							if (viaAnalisada == viaAberta)
+							if (viaAnalisada.getName() == viaAberta.getName())
 							{
 								quantidadeCarrosViaAberta = quantidadeCarrosAnalisada;
+								System.out.println(quantidadeCarrosViaAberta);
 							}
 							else if (viaComMaisCarros == null || quantidadeCarrosAnalisada > maiorQuantidadeCarros) {
 								// Entra no if quando a via analisada possui maior quantidade de carros
@@ -200,7 +201,7 @@ public class Guarda extends Agent{
 			boolean tempoMaiorQueTempoMaximo = duracaoSegundos > TEMPO_MAXIMO_PARA_LIBERAR;
 			boolean tempoMaiorQueTempoMinimo = duracaoSegundos > TEMPO_MINIMO_PARA_LIBERAR;
 			boolean temCarrosNaViaAberta = quantidadeCarrosViaAberta > 0;
-			
+						
 			if(temViaComCarros && (!temCarrosNaViaAberta || (tempoMaiorQueTempoMinimo && (!temViaAberta || quantidadeMinima || tempoMaiorQueTempoMaximo))))
 			{
 				String nomeVia = viaAberta.getName().substring(0, viaAberta.getName().indexOf("@"));
