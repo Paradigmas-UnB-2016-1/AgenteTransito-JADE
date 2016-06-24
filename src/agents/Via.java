@@ -10,6 +10,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import ui.ViaUI;
 
+//Agente que representa as vias de trânsito que irão liberar ou criar carros
 public class Via extends Agent{
 	private static final long serialVersionUID = 1422761164770948535L;
 	

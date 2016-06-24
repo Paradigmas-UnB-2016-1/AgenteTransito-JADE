@@ -13,10 +13,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+//Agente representa o guarda de trânsito que irá controlar as vias que devem ser fechadas e abertas
 public class Guarda extends Agent{
 	private static final long serialVersionUID = -3296457119186802280L;
 
-	int QUANTIDADE_VIAS = 4;
+	int QUANTIDADE_VIAS = 3;
 	
 	private AID[] listaVias = new AID[QUANTIDADE_VIAS]; 
 	
