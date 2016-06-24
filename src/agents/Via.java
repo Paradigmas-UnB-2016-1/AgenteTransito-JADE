@@ -75,7 +75,9 @@ public class Via extends Agent{
 			addBehaviour(new LiberarVia());
 			
 			interfaceGrafica = new ViaUI();
-			interfaceGrafica.showGui();
+			
+			int idVia = Integer.parseInt((String) args[5]);
+			interfaceGrafica.showGui(idVia, nomeVia + " - " + quantidadeDePistas + " pista(s)");
 		}
 		else 
 		{
@@ -105,9 +107,12 @@ public class Via extends Agent{
 				{
 					quantidadeDeCarros = 0;
 				}
-				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
-				System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+				//String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				//System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
 				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
+
+				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				System.out.println(nomeVia + " está aberto: " + statusAberto);
 			}
 		}		
 	}
@@ -125,13 +130,16 @@ public class Via extends Agent{
 			if(!statusAberto)
 			{
 				quantidadeDeCarros++;
-				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
-				System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
+				//String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				//System.out.println("Quantidade de carros na " + nomeVia + ": " + quantidadeDeCarros.toString());
 				//try {
 					//Thread.sleep(1000);
 				//} catch (InterruptedException e) {
 				//}
 				interfaceGrafica.atualizar(quantidadeDeCarros, statusAberto);
+
+				String nomeVia = this.getAgent().getName().substring(0, this.getAgent().getName().indexOf("@"));
+				System.out.println(nomeVia + " está aberto: " + statusAberto);
 			}
 		}		
 	}
@@ -145,16 +153,16 @@ public class Via extends Agent{
 			if (msg != null) {
 				ACLMessage resposta = msg.createReply();
 
-				if (quantidadeDeCarros > 0)
-				{
+				//if ()
+				//{
 					resposta.setPerformative(ACLMessage.PROPOSE);
 					resposta.setContent(quantidadeDeCarros.toString());
-				}
-				else
-				{
-					resposta.setPerformative(ACLMessage.REFUSE);
-					resposta.setContent("not-available");
-				}
+				//}
+				//else
+				//{
+					//resposta.setPerformative(ACLMessage.REFUSE);
+					//resposta.setContent("not-available");
+				//}
 				myAgent.send(resposta);
 			}
 			else {

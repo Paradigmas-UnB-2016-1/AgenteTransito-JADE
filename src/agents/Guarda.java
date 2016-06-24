@@ -15,8 +15,10 @@ import jade.lang.acl.MessageTemplate;
 
 public class Guarda extends Agent{
 	private static final long serialVersionUID = -3296457119186802280L;
+
+	int QUANTIDADE_VIAS = 4;
 	
-	private AID[] listaVias = new AID[2]; 
+	private AID[] listaVias = new AID[QUANTIDADE_VIAS]; 
 	
 	private AID viaAberta; // Representa a via com aberta
 	private Integer quantidadeCarrosViaAberta = 0; // Quantidade de carros da via aberta
@@ -29,7 +31,6 @@ public class Guarda extends Agent{
 	String CFP_CONVERSATION_ID = "carros-na-via";
 	String TRAVAR_VIA_ID = "travar-via";
 	String LIBERAR_VIA_ID = "liberar-via";
-	int QUANTIDADE_VIAS = 2;
 	MessageTemplate mt;
 
 	final int QUANTIDADE_MINIMA_PARA_LIBERAR = 4;
@@ -72,10 +73,17 @@ public class Guarda extends Agent{
 						if (via.statusAberto)
 							viaAberta = listaVias[i];
 					}*/
-					if(listaVias[0].getName().contains("Rio"))
-						viaAberta = listaVias[0];
-					else
-						viaAberta = listaVias[1];
+					int indiceViaAberta = 0;
+					for(int i=0;i<listaVias.length;i++)
+					{
+						if(listaVias[0].getName().contains("Rio"))
+						{
+							indiceViaAberta = i;
+							break;
+						}
+					}
+					
+					viaAberta = listaVias[indiceViaAberta];
 				}
 				else
 				{
@@ -157,16 +165,22 @@ public class Guarda extends Agent{
 				
 				while(quantidadePropostas < listaVias.length)
 				{
+
+					//System.out.println("recebe CFP.");
+					
 					// Recebe as respostas das vias
 					ACLMessage resposta = myAgent.receive(mt);
 					if (resposta != null) {
 						if (resposta.getPerformative() == ACLMessage.PROPOSE) {
+							
+							//System.out.println("recebe propose.");
+							
 							int quantidadeCarrosAnalisada = Integer.parseInt(resposta.getContent());
 							AID viaAnalisada = resposta.getSender();
 							if (viaAnalisada.getName() == viaAberta.getName())
 							{
 								quantidadeCarrosViaAberta = quantidadeCarrosAnalisada;
-								System.out.println(quantidadeCarrosViaAberta);
+								//System.out.println("Quantidade da Via Aberta: " + quantidadeCarrosViaAberta);
 							}
 							else if (viaComMaisCarros == null || quantidadeCarrosAnalisada > maiorQuantidadeCarros) {
 								// Entra no if quando a via analisada possui maior quantidade de carros
@@ -201,6 +215,14 @@ public class Guarda extends Agent{
 			boolean tempoMaiorQueTempoMaximo = duracaoSegundos > TEMPO_MAXIMO_PARA_LIBERAR;
 			boolean tempoMaiorQueTempoMinimo = duracaoSegundos > TEMPO_MINIMO_PARA_LIBERAR;
 			boolean temCarrosNaViaAberta = quantidadeCarrosViaAberta > 0;
+
+			//System.out.println("Via Aberta: " + viaAberta);
+			//System.out.println("Quantidade: " + quantidadeCarrosViaAberta); 
+			
+			if(!temCarrosNaViaAberta)
+			{
+				//System.out.println("NAO TEM CARRO NA VIA ABERTA");
+			}
 						
 			if(temViaComCarros && (!temCarrosNaViaAberta || (tempoMaiorQueTempoMinimo && (!temViaAberta || quantidadeMinima || tempoMaiorQueTempoMaximo))))
 			{
@@ -229,6 +251,8 @@ public class Guarda extends Agent{
 			{
 				String nomeVia = viaComMaisCarros.getName().substring(0, viaComMaisCarros.getName().indexOf("@"));
 				System.out.println("Liberando a " + nomeVia);
+				System.out.println("");
+				System.out.println("");
 				
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.addReceiver(viaComMaisCarros);
